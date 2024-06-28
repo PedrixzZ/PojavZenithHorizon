@@ -66,17 +66,9 @@ public class AndroidPointerCapture implements ViewTreeObserver.OnWindowFocusChan
                 mScroller.performScroll(relX, relY);
             }
         } else {
-            // Workaround for Android 13 bug with inverted axes
-            // Use the absolute axes and subtract the previous position
-            float absX = event.getX();
-            float absY = event.getY();
-            float deltaX = absX - CallbackBridge.mouseX;
-            float deltaY = absY - CallbackBridge.mouseY;
-
-            // Update the mouse position with the delta
-            CallbackBridge.mouseX += deltaX * mScaleFactor;
-            CallbackBridge.mouseY += deltaY * mScaleFactor;
-
+            // Position is updated by many events, hence it is send regardless of the event value
+            CallbackBridge.mouseX += (relX * mScaleFactor);
+            CallbackBridge.mouseY += (relY * mScaleFactor);
             CallbackBridge.sendCursorPos(CallbackBridge.mouseX, CallbackBridge.mouseY);
         }
 
