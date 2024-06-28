@@ -27,8 +27,6 @@ public class InGUIEventProcessor implements TouchEventProcessor {
 
     @Override
     public boolean processTouchEvent(MotionEvent motionEvent) {
-        boolean singleTap = mSingleTapDetector.onTouchEvent(motionEvent);
-
         switch (motionEvent.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
                 mTracker.startTracking(motionEvent);
@@ -66,17 +64,13 @@ public class InGUIEventProcessor implements TouchEventProcessor {
             case MotionEvent.ACTION_UP:
                 mScroller.resetScrollOvershoot();
                 mTracker.cancelTracking();
-
-                // Handle single tap on gestures
-                if((!LauncherPreferences.PREF_DISABLE_GESTURES || touchpadDisplayed()) && !mIsMouseDown && singleTap) {
-                    CallbackBridge.putMouseEventWithCoords(LwjglGlfwKeycode.GLFW_MOUSE_BUTTON_LEFT, CallbackBridge.mouseX, CallbackBridge.mouseY);
-                }
-
                 if(mIsMouseDown) disableMouse();
                 resetGesture();
         }
 
-
+        if((!LauncherPreferences.PREF_DISABLE_GESTURES || touchpadDisplayed()) && mSingleTapDetector.onTouchEvent(motionEvent)) {
+            clickMouse();
+        }
         return true;
     }
 
@@ -102,9 +96,14 @@ public class InGUIEventProcessor implements TouchEventProcessor {
         mIsMouseDown = false;
     }
 
+    private void clickMouse() {
+        CallbackBridge.sendMouseButton(LwjglGlfwKeycode.GLFW_MOUSE_BUTTON_LEFT, true);
+        CallbackBridge.sendMouseButton(LwjglGlfwKeycode.GLFW_MOUSE_BUTTON_LEFT, false);
+    }
+
     private void setGestureStart(MotionEvent event) {
-        mStartX = event.getX() * mScaleFactor;
-        mStartY = event.getY() * mScaleFactor;
+        mStartX = event.getX();
+        mStartY = event.getY();
     }
 
     private void resetGesture() {
