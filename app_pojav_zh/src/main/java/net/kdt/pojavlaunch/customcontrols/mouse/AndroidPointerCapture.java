@@ -51,8 +51,8 @@ public class AndroidPointerCapture implements ViewTreeObserver.OnWindowFocusChan
     public boolean onCapturedPointer(View view, MotionEvent event) {
         // Yes, we actually not only receive relative mouse events here, but also absolute touchpad ones!
         // Read from relative axis directly to work around.
-        float relX = event.getAxisValue(MotionEvent.AXIS_RELATIVE_X);
-        float relY = event.getAxisValue(MotionEvent.AXIS_RELATIVE_Y);
+        float relX = event.getAxisValue(MotionEvent.AXIS_RELATIVE_Y);
+        float relY = event.getAxisValue(MotionEvent.AXIS_RELATIVE_X);
         if(!CallbackBridge.isGrabbing()) {
             enableTouchpadIfNecessary();
             // Yes, if the user's touchpad is multi-touch we will also receive events for that.
