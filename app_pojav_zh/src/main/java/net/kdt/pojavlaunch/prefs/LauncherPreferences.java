@@ -47,6 +47,8 @@ public class LauncherPreferences {
     public static String PREF_DEFAULT_RUNTIME;
     public static boolean PREF_SUSTAINED_PERFORMANCE = false;
     public static boolean PREF_VIRTUAL_MOUSE_START = true;
+    public static boolean PREF_INVERT_XY_INGAME = true;
+    public static boolean PREF_INVERT_XY_MENU = false;
     public static boolean PREF_ARC_CAPES = false;
     public static boolean PREF_USE_ALTERNATE_SURFACE = true;
     public static boolean PREF_JAVA_SANDBOX = true;
@@ -97,6 +99,8 @@ public class LauncherPreferences {
 
         PREF_RENDERER = DEFAULT_PREF.getString("renderer", "opengles2");
         PREF_BUTTONSIZE = DEFAULT_PREF.getInt("buttonscale", 100);
+	PREF_INVERT_XY_INGAME = DEFAULT_PREF.getBoolean("invert_xy_ingame", true);
+        PREF_INVERT_XY_MENU = DEFAULT_PREF.getBoolean("invert_xy_menu", false);
         PREF_HIDE_SIDEBAR = DEFAULT_PREF.getBoolean("hideSidebar", false);
         PREF_IGNORE_NOTCH = DEFAULT_PREF.getBoolean("ignoreNotch", true);
 		PREF_VERTYPE_RELEASE = DEFAULT_PREF.getBoolean("vertype_release", true);
