@@ -2,17 +2,23 @@ package net.kdt.pojavlaunch.customcontrols.mouse;
 
 import static net.kdt.pojavlaunch.Tools.currentDisplayMetrics;
 import static net.kdt.pojavlaunch.prefs.LauncherPreferences.DEFAULT_PREF;
+import static net.kdt.pojavlaunch.prefs.LauncherPreferences.PREF_INVERT_XY_INGAME;
+import static net.kdt.pojavlaunch.prefs.LauncherPreferences.PREF_INVERT_XY_MENU;
 
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.util.AttributeSet;
 import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.res.ResourcesCompat;
+
 import net.kdt.pojavlaunch.GrabListener;
-import com.movtery.pojavzh.utils.ZHTools;
+import net.kdt.pojavlaunch.R;
+import net.kdt.pojavlaunch.prefs.LauncherPreferences;
 
 import org.lwjgl.glfw.CallbackBridge;
 
@@ -77,37 +83,32 @@ public class Touchpad extends View implements GrabListener, AbstractTouchpad {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        canvas.translate(mMouseX, mMouseY);
+        if(!CallbackBridge.nativeGetInverted())
+            canvas.translate(mMouseX, mMouseY);
+        else
+            canvas.translate(currentDisplayMetrics.widthPixels - mMouseY, mMouseX);
         mMousePointerDrawable.draw(canvas);
     }
 
     private void init(){
         // Setup mouse pointer
-        updateMouseDrawable();
+        mMousePointerDrawable = ResourcesCompat.getDrawable(getResources(), R.drawable.ic_mouse_pointer, getContext().getTheme());
         // For some reason it's annotated as Nullable even though it doesn't seem to actually
         // ever return null
         assert mMousePointerDrawable != null;
-
-        updateMouseScale();
-
+        mMousePointerDrawable.setBounds(
+                0, 0,
+                (int) (36 / 100f * LauncherPreferences.PREF_MOUSESCALE),
+                (int) (54 / 100f * LauncherPreferences.PREF_MOUSESCALE)
+        );
         setFocusable(false);
-        setDefaultFocusHighlightEnabled(false);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            setDefaultFocusHighlightEnabled(false);
+        }
 
         // When the game is grabbing, we should not display the mouse
         disable();
         mDisplayState = false;
-    }
-
-    public void updateMouseScale() {
-        mMousePointerDrawable.setBounds(
-                0, 0,
-                (int) (36 / 100f * DEFAULT_PREF.getInt("mousescale", 100)),
-                (int) (54 / 100f * DEFAULT_PREF.getInt("mousescale", 100))
-        );
-    }
-
-    public void updateMouseDrawable() {
-        mMousePointerDrawable = ZHTools.customMouse(getContext());
     }
 
     @Override
@@ -118,8 +119,12 @@ public class Touchpad extends View implements GrabListener, AbstractTouchpad {
         if(!isGrabbing) {
             if(mDisplayState && getVisibility() != VISIBLE) _enable();
             if(!mDisplayState && getVisibility() == VISIBLE) _disable();
+
+            CallbackBridge.nativeSetInverted(PREF_INVERT_XY_MENU);
         }else{
             if(getVisibility() != View.GONE) _disable();
+
+            CallbackBridge.nativeSetInverted(PREF_INVERT_XY_INGAME);
         }
     }
 
@@ -130,8 +135,13 @@ public class Touchpad extends View implements GrabListener, AbstractTouchpad {
 
     @Override
     public void applyMotionVector(float x, float y) {
-        mMouseX = Math.max(0, Math.min(currentDisplayMetrics.widthPixels, mMouseX + x * (DEFAULT_PREF.getInt("mousespeed", 100) / 100f)));
-        mMouseY = Math.max(0, Math.min(currentDisplayMetrics.heightPixels, mMouseY + y * (DEFAULT_PREF.getInt("mousespeed",100) / 100f)));
+        if(!CallbackBridge.nativeGetInverted()) {
+            mMouseX = Math.max(0, Math.min(currentDisplayMetrics.widthPixels, mMouseX + x * LauncherPreferences.PREF_MOUSESPEED));
+            mMouseY = Math.max(0, Math.min(currentDisplayMetrics.heightPixels, mMouseY + y * LauncherPreferences.PREF_MOUSESPEED));
+        } else {
+            mMouseX = Math.max(0, Math.min(currentDisplayMetrics.heightPixels, mMouseX + x * LauncherPreferences.PREF_MOUSESPEED));
+            mMouseY = Math.max(0, Math.min(currentDisplayMetrics.widthPixels, mMouseY + y * LauncherPreferences.PREF_MOUSESPEED));
+        }
         updateMousePosition();
     }
 
